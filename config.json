@@ -1,0 +1,16 @@
+{
+	"__comment_neoscrypt_zergpool" : "-o stratum+tcp://neoscrypt.mine.zergpool.com:4233 -u LNec6RpZxX6Q1EJYkKjUPBTohM7Ux6uMUy -p c=LTC,id=docker",
+	"__comment_yescrypt_zergpool" : "-o stratum+tcp://yescrypt.mine.zergpool.com:6233 -u LNec6RpZxX6Q1EJYkKjUPBTohM7Ux6uMUy -p c=LTC,id=docker",
+	"__comment_yespower_zergpool" : "-o stratum+tcp://yespower.mine.zergpool.com:6533 -u LNec6RpZxX6Q1EJYkKjUPBTohM7Ux6uMUy -p c=LTC,id=docker",
+
+	"api-bind" : "127.0.0.1:80",
+
+	"url" : "stratum+tcp://yespower.eu.mine.zergpool.com:6533",
+	"user" : "LNec6RpZxX6Q1EJYkKjUPBTohM7Ux6uMUy",
+	"pass" : "c=LTC,id=docker",
+
+	"algo" : "yespower",
+	"threads" : 4,
+
+	"no-color" : true
+}
