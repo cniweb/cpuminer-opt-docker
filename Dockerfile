@@ -1,4 +1,4 @@
-FROM  debian:buster
+FROM  debian:bullseye
 RUN set -x \
     # Runtime dependencies.
  && apt-get update \
