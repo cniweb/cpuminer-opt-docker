@@ -1,4 +1,4 @@
-FROM  debian:bullseye
+FROM  debian:11.2
 RUN set -x \
     # Runtime dependencies.
  && apt-get update \
