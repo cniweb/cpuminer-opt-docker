@@ -4,6 +4,14 @@ High performance, open source CPU/GPU Miner Docker Image for some mininer algori
 
 [![Snyk Container](https://github.com/cniweb/cpuminer-opt-docker/actions/workflows/snyk-container-analysis.yml/badge.svg)](https://github.com/cniweb/cpuminer-opt-docker/actions/workflows/snyk-container-analysis.yml)
 
+## Usage from ghcr.io
+
+```bash
+docker pull ghcr.io/cniweb/cpuminer-opt:latest
+```
+
+https://github.com/cniweb/cpuminer-opt-docker/pkgs/container/cpuminer-opt
+
 ## Usage from Docker.io
 
 ```bash
