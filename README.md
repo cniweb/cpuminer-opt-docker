@@ -7,10 +7,10 @@ High performance, open source CPU/GPU Miner Docker Image for some mininer algori
 ## Usage from ghcr.io
 
 ```bash
-docker pull ghcr.io/cniweb/cpuminer-opt:latest
+docker run ghcr.io/cniweb/cpuminer-opt:latest
 ```
 
-https://github.com/cniweb/cpuminer-opt-docker/pkgs/container/cpuminer-opt
+<https://github.com/cniweb/cpuminer-opt-docker/pkgs/container/cpuminer-opt>
 
 ## Usage from Docker.io
 
@@ -21,5 +21,5 @@ docker run cniweb/cpuminer-opt:latest
 ## Usage from Quay.io
 
 ```bash
-docker pull quay.io/cniweb/cpuminer-opt:latest
+docker run quay.io/cniweb/cpuminer-opt:latest
 ```
