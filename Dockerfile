@@ -16,12 +16,14 @@ RUN set -x \
         libgmp-dev \
         libz-dev \
         make \
-        pkg-config
+        pkg-config \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 RUN set -x \
     # Compile from source code.
  && git clone --recursive https://github.com/JayDDee/cpuminer-opt.git /tmp/cpuminer \
  && cd /tmp/cpuminer \
- && git checkout v3.23.1 \
+ && git checkout v3.23.3 \
  && ./autogen.sh \
  && extracflags="$extracflags -Ofast -flto -fuse-linker-plugin -ftree-loop-if-convert-stores" \
  && CFLAGS="-O3 -march=native -Wall" ./configure --with-curl  \
@@ -37,7 +39,9 @@ RUN set -x \
         make \
         pkg-config \
  && apt-get clean \
- && rm -rf /var/lib/apt/lists/* \
+ && apt-get -y autoremove --purge \
+ && apt-get -y clean \
+ && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* \
  && rm -rf /tmp/* \
     # Verify
  && cpuminer --cputest \
