@@ -23,7 +23,7 @@ RUN set -x \
     # Compile from source code.
  && git clone --recursive https://github.com/JayDDee/cpuminer-opt.git /tmp/cpuminer \
  && cd /tmp/cpuminer \
- && git checkout v23.9 \
+ && git checkout v23.15 \
  && ./autogen.sh \
  && extracflags="$extracflags -Ofast -flto -fuse-linker-plugin -ftree-loop-if-convert-stores" \
  && CFLAGS="-O3 -march=native -Wall" ./configure --with-curl  \
