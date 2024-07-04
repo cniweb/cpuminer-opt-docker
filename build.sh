@@ -1,5 +1,5 @@
 #!/bin/bash
-version="24.1"
+version="24.4"
 image="cpuminer-opt"
 docker build . --tag docker.io/cniweb/$image:$version
 docker tag docker.io/cniweb/$image:$version docker.io/cniweb/$image:latest
