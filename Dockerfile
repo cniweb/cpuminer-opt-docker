@@ -1,29 +1,30 @@
 FROM debian:stable-slim
+ARG VERSION_TAG=v24.8
 RUN set -x \
     # Runtime dependencies.
  && apt-get update \
  && apt-get upgrade -y \
     # Build dependencies.
  && apt-get install -y \
-        autoconf \
-        automake \
-        curl \
-        g++ \
-        git \
-        libcurl4-openssl-dev \
-        libjansson-dev \
-        libssl-dev \
-        libgmp-dev \
-        libz-dev \
-        make \
-        pkg-config \
+    autoconf \
+    automake \
+    curl \
+    g++ \
+    git \
+    libcurl4-openssl-dev \
+    libgmp-dev \
+    libjansson-dev \
+    libssl-dev \
+    libz-dev \
+    make \
+    pkg-config \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 RUN set -x \
     # Compile from source code.
  && git clone --recursive https://github.com/JayDDee/cpuminer-opt.git /tmp/cpuminer \
  && cd /tmp/cpuminer \
- && git checkout v24.4 \
+ && git checkout "$VERSION_TAG" \
  && ./autogen.sh \
  && extracflags="$extracflags -Ofast -flto -fuse-linker-plugin -ftree-loop-if-convert-stores" \
  && CFLAGS="-O3 -march=native -Wall" ./configure --with-curl  \
