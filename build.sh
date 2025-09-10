@@ -1,7 +1,7 @@
 #!/bin/bash
 # Define image name, version and registries
 image="cpuminer-opt"
-version="25.1"
+version="25.6"
 registries=("docker.io" "ghcr.io" "quay.io")
 
 # Build the image
