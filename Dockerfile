@@ -22,6 +22,7 @@ RUN set -x \
  && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 RUN set -x \
     # Compile from source code.
+ && git config --global http.sslVerify false \
  && git clone --recursive https://github.com/JayDDee/cpuminer-opt.git /tmp/cpuminer \
  && cd /tmp/cpuminer \
  && git checkout "$VERSION_TAG" \
