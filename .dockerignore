@@ -1,0 +1,22 @@
+# Git files
+.git
+.gitignore
+.github
+
+# Documentation
+README.md
+LICENSE
+
+# Development files
+.env
+.env.*
+
+# Temporary files
+*.tmp
+*.log
+
+# Whitesource config
+.whitesource
+
+# Exclude build.sh file
+build.sh
