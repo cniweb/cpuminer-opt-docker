@@ -1,8 +1,8 @@
 # cpuminer-opt-docker
 
-cpuminer-opt-docker is a Docker-based cryptocurrency mining project that builds and packages cpuminer-opt (a CPU/GPU miner) into Docker images. It supports multiple mining algorithms with optimizations for modern CPU features (AVX, AVX2, SHA, AVX512, VAES).
+cpuminer-opt-docker is a containerized cryptocurrency miner that builds cpuminer-opt from source in a Debian environment. It creates optimized Docker images for CPU mining across multiple registries.
 
-**Always reference these instructions first and fallback to search or bash commands only when you encounter unexpected information that does not match the info here.**
+Always reference these instructions first and fallback to search or bash commands only when you encounter unexpected information that does not match the info here.
 
 ## Working Effectively
 
@@ -11,13 +11,28 @@ cpuminer-opt-docker is a Docker-based cryptocurrency mining project that builds 
 - Test functionality: `docker run --rm cniweb/cpuminer-opt:latest cpuminer --version`
 - Run with help: `docker run --rm cniweb/cpuminer-opt:latest cpuminer --help`
 
-### Building from Source (Advanced)
-**CRITICAL SSL ISSUE**: The original Dockerfile fails due to SSL certificate verification errors when cloning from GitHub.
+### Bootstrap and Build the Container
+- **NEVER CANCEL: Docker build takes 60-90 seconds. NEVER CANCEL. Set timeout to 120+ seconds.**
+- **CRITICAL SSL ISSUE**: The original Dockerfile fails due to SSL certificate verification errors when cloning from GitHub.
 
-**Working build process with SSL workaround**:
+#### Standard Build (Simple SSL Workaround)
+- Build the Docker image:
+  ```bash
+  cd /home/runner/work/cpuminer-opt-docker/cpuminer-opt-docker
+  docker build . --tag cpuminer-opt:latest --build-arg VERSION_TAG=v25.6
+  ```
+- **If build fails with SSL certificate errors**, use this workaround for sandboxed environments:
+  ```bash
+  # Create temporary Dockerfile with SSL workaround
+  sed 's/git clone --recursive/git config --global http.sslverify false \&\& git clone --recursive/' Dockerfile > /tmp/Dockerfile.ssl-fix
+  docker build -f /tmp/Dockerfile.ssl-fix . --tag cpuminer-opt:latest --build-arg VERSION_TAG=v25.6
+  ```
+
+#### Advanced Build (Complete SSL Workaround)
+For comprehensive SSL fixes, create a complete fixed Dockerfile:
 ```bash
 # Create fixed Dockerfile with SSL workaround
-cat > Dockerfile.fixed << 'EOF'
+cat > /tmp/Dockerfile.fixed << 'EOF'
 FROM debian:trixie-slim
 ARG VERSION_TAG=v25.6
 RUN set -x \
@@ -51,84 +66,144 @@ CMD ["cpuminer", "--config=config.json"]
 EOF
 
 # Build the image -- takes 65 seconds. NEVER CANCEL. Set timeout to 120+ seconds.
-docker build -f Dockerfile.fixed . --build-arg VERSION_TAG=v25.6 --tag cpuminer-local:latest
+docker build -f /tmp/Dockerfile.fixed . --build-arg VERSION_TAG=v25.6 --tag cpuminer-opt:latest
 ```
 
-**Build timing**: 65 seconds total. NEVER CANCEL builds - they complete successfully with the SSL workaround.
+### Use the Build Script
+- Build and tag for all registries:
+  ```bash
+  # Note: This script will attempt to push to registries - only run if you have push access
+  ./build.sh
+  ```
+- The script builds for docker.io, ghcr.io, and quay.io with version 25.6
+- **Note**: build.sh will fail with SSL errors. Apply SSL workaround to Dockerfile first.
 
-### Testing and Validation
+### Run the Container
+- Display help information:
+  ```bash
+  docker run --rm cpuminer-opt:latest cpuminer --help
+  ```
+- Run with default configuration (connects to mining pool):
+  ```bash
+  docker run --rm cpuminer-opt:latest
+  ```
+- **Note**: Default configuration attempts to connect to yespower.eu.mine.zergpool.com which may not be reachable in all environments
+- Run benchmark mode (offline testing):
+  ```bash
+  docker run --rm cpuminer-opt:latest cpuminer --benchmark --algo=yespower --time-limit=10
+  ```
+- View version information:
+  ```bash
+  docker run --rm cpuminer-opt:latest cpuminer --version
+  ```
+
+## Validation
+
+### Always Validate Changes
+- **Build validation**: Always run the Docker build after making changes to ensure the image builds successfully
+- **Runtime validation**: Test that the container starts and shows help information:
+  ```bash
+  docker run --rm cpuminer-opt:latest cpuminer --help
+  ```
+- **Benchmark validation**: Run a short benchmark to ensure the miner works:
+  ```bash
+  docker run --rm cpuminer-opt:latest cpuminer --benchmark --algo=yespower --time-limit=5
+  ```
+- **CI validation**: Check that GitHub workflows pass for Docker builds and security scanning
+
+### Complete Validation Suite
 **Always validate functionality after any changes**:
 ```bash
-# Test version (should show v25.6 if built from source, v25.1 if using pre-built)
-docker run --rm <image_name> cpuminer --version
+# Test version (should show v25.6 if built from source)
+docker run --rm cpuminer-opt:latest cpuminer --version
 
 # Test help output (shows supported algorithms)
-docker run --rm <image_name> cpuminer --help
+docker run --rm cpuminer-opt:latest cpuminer --help
 
 # Test CPU test functionality
-docker run --rm <image_name> cpuminer --cputest
+docker run --rm cpuminer-opt:latest cpuminer --cputest
 
 # Test mining configuration (will fail to connect to pool but validates config parsing)
-timeout 30s docker run --rm <image_name>
+timeout 30s docker run --rm cpuminer-opt:latest
 ```
 
-**Expected validation results**:
-- `--version`: Shows cpuminer-opt version, CPU features (AVX2, VAES, SHA256), build info
-- `--help`: Lists 50+ supported mining algorithms (allium, anime, argon2, etc.)
-- `--cputest`: Runs silently and exits with code 0
-- Default run: Shows yespower algorithm, tries to connect to zergpool.com (fails due to network restrictions)
-
-## Build Infrastructure
-
-### GitHub Workflows
-- `docker-image.yml`: Basic Docker build CI (FAILS due to SSL certificate issue)
-- `snyk-container-analysis.yml`: Security scanning with complex SARIF patching
-
-**Known CI Issues**:
-- Docker builds fail in GitHub Actions due to SSL certificate verification
-- Original build.sh script will fail without SSL workaround
-- Snyk workflow has extensive SARIF patching for null security-severity values
-
-### Build Script Usage
-```bash
-# Make executable and run (WILL FAIL without SSL fix)
-chmod +x build.sh
-./build.sh  # Builds and pushes to docker.io, ghcr.io, quay.io
-```
-
-**Note**: build.sh will fail with SSL errors. Apply SSL workaround to Dockerfile first.
-
-## Configuration
-
-### Mining Configuration (config.json)
-- **Algorithm**: yespower (CPU-optimized)
-- **Pool**: yespower.eu.mine.zergpool.com:6533
-- **API**: Binds to 127.0.0.1:80
-- **Threads**: 4 (configurable)
-
-### Docker Configuration
-- **Base image**: debian:trixie-slim
-- **Exposed port**: 80 (mining API)
-- **Working directory**: /cpuminer
-- **Default command**: `cpuminer --config=config.json`
+### Expected Behavior
+- **Build time**: Docker build completes in 60-90 seconds with source compilation
+- **Container startup**: Container starts immediately and displays cpuminer-opt 25.6 banner
+- **Default behavior**: Container attempts to connect to mining pool and retries every 10 seconds if connection fails
+- **Benchmark mode**: Reports hashrate (e.g., "Benchmark: 636.87 H/s") and exits cleanly
+- **Validation results**:
+  - `--version`: Shows cpuminer-opt version, CPU features (AVX2, VAES, SHA256), build info
+  - `--help`: Lists 50+ supported mining algorithms (allium, anime, argon2, etc.)
+  - `--cputest`: Runs silently and exits with code 0
+  - Default run: Shows yespower algorithm, tries to connect to zergpool.com (fails due to network restrictions)
 
 ## Common Tasks
 
-### Repository Structure
+### Updating cpuminer-opt Version
+- Update VERSION_TAG in build.sh
+- Update VERSION_TAG build argument in Dockerfile
+- Test build with new version:
+  ```bash
+  docker build . --build-arg VERSION_TAG=vNEW.VERSION --tag cpuminer-opt:test
+  ```
+
+### Modifying Mining Configuration
+- Edit config.json to change:
+  - Mining pool URL (`url`)
+  - Wallet address (`user`) 
+  - Mining algorithm (`algo`)
+  - Thread count (`threads`)
+- Always test configuration changes:
+  ```bash
+  docker run --rm cpuminer-opt:latest cpuminer --config=/cpuminer/config.json --time-limit=10
+  ```
+
+### Troubleshooting Build Issues
+- **SSL/certificate errors**: Use the SSL workaround documented above
+- **Out of memory during build**: The build uses `make install -j 4` which may require sufficient RAM
+- **Missing dependencies**: All required build dependencies are installed in the Dockerfile's first RUN layer
+
+### Additional Troubleshooting
+
+#### SSL Certificate Issues
+**Problem**: `fatal: unable to access 'https://github.com/JayDDee/cpuminer-opt.git/': server verification failed`
+
+**Solution**: Add `git config --global http.sslVerify false` before git clone in Dockerfile
+
+#### Build Failures
+- **Always use the SSL workaround Dockerfile** for successful builds
+- **Never use the original build.sh** without fixing Dockerfile first
+- **Set Docker build timeout to 120+ seconds** - builds take ~65 seconds
+
+#### Mining Connection Issues
+- Default config tries to connect to external mining pool
+- Connection failures are expected in restricted network environments
+- Pool connections are for testing/demonstration only
+
+## Repository Structure
+
 ```
 .
-├── Dockerfile              # Main build file (has SSL issue)
-├── build.sh                # Build and push script (fails without SSL fix)
-├── config.json             # Mining pool configuration
-├── README.md               # Basic usage documentation
-├── LICENSE                 # Apache License 2.0
-├── .dockerignore           # Docker build exclusions
+├── .dockerignore          # Files excluded from Docker build context
 ├── .github/
 │   └── workflows/
-│       ├── docker-image.yml         # Basic CI (fails)
+│       ├── docker-image.yml          # CI build workflow (FAILS due to SSL)
 │       └── snyk-container-analysis.yml  # Security scanning
-└── .whitesource            # WhiteSource configuration
+├── Dockerfile             # Multi-stage build definition (has SSL issue)
+├── LICENSE                # Apache 2.0 license
+├── README.md              # Basic usage documentation  
+├── build.sh               # Multi-registry build and push script (fails without SSL fix)
+├── config.json            # Default mining configuration (yespower algorithm)
+└── .whitesource           # WhiteSource configuration
 ```
+
+### Key Files
+- **Dockerfile**: Builds cpuminer-opt v25.6 from github.com/JayDDee/cpuminer-opt with optimizations
+- **config.json**: Contains mining pool configuration for yespower algorithm
+- **build.sh**: Automates building and pushing to docker.io, ghcr.io, and quay.io
+- **.github/workflows/docker-image.yml**: CI pipeline that builds Docker image on push/PR
+- **.github/workflows/snyk-container-analysis.yml**: Security vulnerability scanning
 
 ### Key Configuration Files
 
@@ -145,28 +220,35 @@ chmod +x build.sh
 }
 ```
 
-#### Dockerfile (original - has SSL issue)
-- Builds cpuminer-opt v25.6 from source
-- Uses Debian trixie-slim base
-- Installs build dependencies and libraries
-- **FAILS**: SSL certificate verification during git clone
+### Build Process Details
+1. Starts from debian:trixie-slim base image
+2. Installs build dependencies (autoconf, automake, gcc, git, libcurl, etc.)
+3. Clones cpuminer-opt source code from GitHub
+4. Compiles with optimizations: -Ofast -flto -fuse-linker-plugin -ftree-loop-if-convert-stores
+5. Installs binary and cleans up build dependencies
+6. Copies config.json and sets up runtime environment
+7. Exposes port 80 for API access
+8. Sets default command to run with config file
 
-## Troubleshooting
+### Build Infrastructure
 
-### SSL Certificate Issues
-**Problem**: `fatal: unable to access 'https://github.com/JayDDee/cpuminer-opt.git/': server verification failed`
+#### GitHub Workflows
+- `docker-image.yml`: Basic Docker build CI (FAILS due to SSL certificate issue)
+- `snyk-container-analysis.yml`: Security scanning with complex SARIF patching
 
-**Solution**: Add `git config --global http.sslVerify false` before git clone in Dockerfile
+**Known CI Issues**:
+- Docker builds fail in GitHub Actions due to SSL certificate verification
+- Original build.sh script will fail without SSL workaround
+- Snyk workflow has extensive SARIF patching for null security-severity values
 
-### Build Failures
-- **Always use the SSL workaround Dockerfile** for successful builds
-- **Never use the original build.sh** without fixing Dockerfile first
-- **Set Docker build timeout to 120+ seconds** - builds take ~65 seconds
+### Docker Configuration
+- **Base image**: debian:trixie-slim
+- **Exposed port**: 80 (mining API)
+- **Working directory**: /cpuminer
+- **Default command**: `cpuminer --config=config.json`
 
-### Mining Connection Issues
-- Default config tries to connect to external mining pool
-- Connection failures are expected in restricted network environments
-- Pool connections are for testing/demonstration only
+### Supported Algorithms
+The miner supports 80+ algorithms including: yespower, scrypt, sha256d, x11, x16r, neoscrypt, lyra2re, and many others. See `cpuminer --help` for the complete list.
 
 ## Version Information
 - **cpuminer-opt version**: v25.6 (when built from source)
