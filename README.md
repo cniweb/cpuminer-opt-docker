@@ -2,7 +2,7 @@
 
 High performance, open source CPU/GPU Miner Docker Image for some mininer algoritms with AES, AVX, AVX2, SHA, AVX512 and VAES.
 
-[![Snyk Container](https://github.com/cniweb/cpuminer-opt-docker/actions/workflows/snyk-container-analysis.yml/badge.svg)](https://github.com/cniweb/cpuminer-opt-docker/actions/workflows/snyk-container-analysis.yml) ![Docker Pulls](https://img.shields.io/docker/pulls/cniweb/cpuminer-opt)
+[![Snyk Container](https://github.com/cniweb/cpuminer-opt-docker/actions/workflows/snyk-container-analysis.yml/badge.svg)](https://github.com/cniweb/cpuminer-opt-docker/actions/workflows/snyk-container-analysis.yml) [![Docker Image CI](https://github.com/cniweb/cpuminer-opt-docker/actions/workflows/docker-image.yml/badge.svg)](https://github.com/cniweb/cpuminer-opt-docker/actions/workflows/docker-image.yml) ![Docker Pulls](https://img.shields.io/docker/pulls/cniweb/cpuminer-opt)
 
 ## Usage from ghcr.io
 
