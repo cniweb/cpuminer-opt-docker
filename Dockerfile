@@ -1,5 +1,5 @@
-FROM debian:stable-slim
-ARG VERSION_TAG=v24.8
+FROM debian:trixie-slim
+ARG VERSION_TAG=v25.6
 RUN set -x \
     # Runtime dependencies.
  && apt-get update \
