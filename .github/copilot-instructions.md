@@ -13,17 +13,17 @@ Always reference these instructions first and fallback to search or bash command
 
 ### Bootstrap and Build the Container
 - **NEVER CANCEL: Docker build takes 60-90 seconds. NEVER CANCEL. Set timeout to 120+ seconds.**
-- **CRITICAL SSL ISSUE**: The original Dockerfile fails due to SSL certificate verification errors when cloning from GitHub.
+- **SSL ISSUE RESOLVED**: The current Dockerfile includes SSL workaround and builds successfully.
 
-#### Standard Build (Simple SSL Workaround)
+#### Standard Build
 - Build the Docker image:
   ```bash
   cd /home/runner/work/cpuminer-opt-docker/cpuminer-opt-docker
   docker build . --tag cpuminer-opt:latest --build-arg VERSION_TAG=v25.6
   ```
-- **If build fails with SSL certificate errors**, use this workaround for sandboxed environments:
+- **If build fails with SSL certificate errors** (in some restricted environments), use this workaround:
   ```bash
-  # Create temporary Dockerfile with SSL workaround
+  # Create temporary Dockerfile with additional SSL workaround
   sed 's/git clone --recursive/git config --global http.sslverify false \&\& git clone --recursive/' Dockerfile > /tmp/Dockerfile.ssl-fix
   docker build -f /tmp/Dockerfile.ssl-fix . --tag cpuminer-opt:latest --build-arg VERSION_TAG=v25.6
   ```
@@ -76,7 +76,8 @@ docker build -f /tmp/Dockerfile.fixed . --build-arg VERSION_TAG=v25.6 --tag cpum
   ./build.sh
   ```
 - The script builds for docker.io, ghcr.io, and quay.io with version 25.6
-- **Note**: build.sh will fail with SSL errors. Apply SSL workaround to Dockerfile first.
+- **Note**: build.sh requires registry credentials (DOCKER_USERNAME, DOCKER_PASSWORD, GITHUB_TOKEN, QUAY_USERNAME, QUAY_PASSWORD)
+- **Without credentials**: The script gracefully reports missing credentials and exits
 
 ### Run the Container
 - Display help information:
@@ -128,7 +129,7 @@ timeout 30s docker run --rm cpuminer-opt:latest
 ```
 
 ### Expected Behavior
-- **Build time**: Docker build completes in 60-90 seconds with source compilation
+- **Build time**: Docker build completes in 60-90 seconds with source compilation (measured ~88 seconds)
 - **Container startup**: Container starts immediately and displays cpuminer-opt 25.6 banner
 - **Default behavior**: Container attempts to connect to mining pool and retries every 10 seconds if connection fails
 - **Benchmark mode**: Reports hashrate (e.g., "Benchmark: 636.87 H/s") and exits cleanly
@@ -172,9 +173,9 @@ timeout 30s docker run --rm cpuminer-opt:latest
 **Solution**: Add `git config --global http.sslVerify false` before git clone in Dockerfile
 
 #### Build Failures
-- **Always use the SSL workaround Dockerfile** for successful builds
-- **Never use the original build.sh** without fixing Dockerfile first
-- **Set Docker build timeout to 120+ seconds** - builds take ~65 seconds
+- **Current Dockerfile works out of the box** with built-in SSL workaround
+- **Set Docker build timeout to 120+ seconds** - builds take ~88 seconds
+- **Only use additional SSL workarounds** if build fails in extremely restricted environments
 
 #### Mining Connection Issues
 - Default config tries to connect to external mining pool
@@ -190,10 +191,10 @@ timeout 30s docker run --rm cpuminer-opt:latest
 │   └── workflows/
 │       ├── docker-image.yml          # CI build workflow (FAILS due to SSL)
 │       └── snyk-container-analysis.yml  # Security scanning
-├── Dockerfile             # Multi-stage build definition (has SSL issue)
+├── Dockerfile             # Multi-stage build definition (SSL workaround included)
 ├── LICENSE                # Apache 2.0 license
 ├── README.md              # Basic usage documentation  
-├── build.sh               # Multi-registry build and push script (fails without SSL fix)
+├── build.sh               # Multi-registry build and push script (requires credentials)
 ├── config.json            # Default mining configuration (yespower algorithm)
 └── .whitesource           # WhiteSource configuration
 ```
@@ -237,8 +238,8 @@ timeout 30s docker run --rm cpuminer-opt:latest
 - `snyk-container-analysis.yml`: Security scanning with complex SARIF patching
 
 **Known CI Issues**:
-- Docker builds fail in GitHub Actions due to SSL certificate verification
-- Original build.sh script will fail without SSL workaround
+- Docker builds may fail in GitHub Actions due to SSL certificate verification in some environments
+- Original build.sh script requires registry credentials to push images
 - Snyk workflow has extensive SARIF patching for null security-severity values
 
 ### Docker Configuration
