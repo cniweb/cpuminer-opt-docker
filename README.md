@@ -18,12 +18,6 @@ docker run ghcr.io/cniweb/cpuminer-opt:latest
 docker run cniweb/cpuminer-opt:latest
 ```
 
-## Usage from Quay.io
-
-```bash
-docker run quay.io/cniweb/cpuminer-opt:latest
-```
-
 ## Development and CI/CD
 
 ### GitHub Secrets Configuration
@@ -39,10 +33,6 @@ To enable automated Docker image building and pushing to multiple registries, co
 2. **GitHub Container Registry (ghcr.io)**:
    - `GITHUB_TOKEN`: Automatically provided by GitHub Actions with `packages: write` permission configured in the workflow
    - No manual secret configuration needed - the workflow automatically grants the necessary permissions
-
-3. **Quay.io**:
-   - `QUAY_USERNAME`: Your Quay.io username
-   - `QUAY_PASSWORD`: Your Quay.io password or robot token
 
 #### How to Configure Secrets:
 
@@ -68,8 +58,6 @@ You can also run the build script locally by setting the appropriate environment
 export DOCKER_USERNAME="your_username"
 export DOCKER_PASSWORD="your_password"
 export GITHUB_TOKEN="your_github_token"
-export QUAY_USERNAME="your_quay_username"
-export QUAY_PASSWORD="your_quay_password"
 
 ./build.sh
 ```
