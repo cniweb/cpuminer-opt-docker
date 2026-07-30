@@ -1,33 +1,143 @@
-name: Docker Image CI
+name: Build & Push Docker Image
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+  attestations: write
 
 jobs:
-
-  build:
-
+  validate:
+    name: Build & validate
     runs-on: ubuntu-latest
-    
-    permissions:
-      contents: read
-      packages: write
-
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-    - name: Build and push Docker image
-      env:
-        # Docker Hub credentials
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-        # Quay.io credentials
-        QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
-        QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
-        # GitHub Container Registry uses GITHUB_TOKEN automatically
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: ./build.sh
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Make scripts executable
+        run: chmod +x ./build.sh ./security-check.sh
+
+      - name: Build image (build-only, no push)
+        run: ./build.sh build-only
+
+      - name: Extract version from build.sh
+        id: get_version
+        run: |
+          VERSION=$(grep '^version=' build.sh | cut -d'"' -f2)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Extracted version: $VERSION"
+
+      - name: Validate image --version
+        run: docker run --rm "docker.io/cniweb/cpuminer-opt:${{ steps.get_version.outputs.version }}" cpuminer --version
+
+      - name: Validate image --cputest
+        run: docker run --rm "docker.io/cniweb/cpuminer-opt:${{ steps.get_version.outputs.version }}" cpuminer --cputest
+
+      - name: Run security-check.sh
+        run: ./security-check.sh "docker.io/cniweb/cpuminer-opt:${{ steps.get_version.outputs.version }}"
+
+  docker:
+    name: Push images
+    needs: validate
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Login to DockerHub
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Make build script executable
+        run: chmod +x ./build.sh
+
+      - name: Run build script (builds Docker image)
+        run: ./build.sh build-only
+
+      - name: Extract version from build.sh
+        id: get_version
+        run: |
+          VERSION=$(grep '^version=' build.sh | cut -d'"' -f2)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Extracted version: $VERSION"
+
+      - name: Validate image before push
+        run: |
+          docker run --rm "docker.io/cniweb/cpuminer-opt:${{ steps.get_version.outputs.version }}" cpuminer --version
+          docker run --rm "docker.io/cniweb/cpuminer-opt:${{ steps.get_version.outputs.version }}" cpuminer --cputest
+
+      - name: Run security-check.sh
+        run: |
+          chmod +x ./security-check.sh
+          ./security-check.sh "docker.io/cniweb/cpuminer-opt:${{ steps.get_version.outputs.version }}"
+
+      - name: Tag Docker image with latest, version, and commit SHA
+        run: |
+          # Tag for Docker Hub
+          docker tag docker.io/cniweb/cpuminer-opt:${{ steps.get_version.outputs.version }} docker.io/cniweb/cpuminer-opt:latest
+          docker tag docker.io/cniweb/cpuminer-opt:${{ steps.get_version.outputs.version }} docker.io/cniweb/cpuminer-opt:${{ github.sha }}
+
+          # Tag for GitHub Container Registry
+          docker tag docker.io/cniweb/cpuminer-opt:${{ steps.get_version.outputs.version }} ghcr.io/cniweb/cpuminer-opt:latest
+          docker tag docker.io/cniweb/cpuminer-opt:${{ steps.get_version.outputs.version }} ghcr.io/cniweb/cpuminer-opt:${{ steps.get_version.outputs.version }}
+          docker tag docker.io/cniweb/cpuminer-opt:${{ steps.get_version.outputs.version }} ghcr.io/cniweb/cpuminer-opt:${{ github.sha }}
+
+      - name: Push Docker images to all registries
+        id: push
+        run: |
+          # Push to Docker Hub
+          docker push docker.io/cniweb/cpuminer-opt:latest
+          docker push docker.io/cniweb/cpuminer-opt:${{ steps.get_version.outputs.version }}
+          docker push docker.io/cniweb/cpuminer-opt:${{ github.sha }}
+
+          # Push to GitHub Container Registry
+          docker push ghcr.io/cniweb/cpuminer-opt:latest
+          docker push ghcr.io/cniweb/cpuminer-opt:${{ steps.get_version.outputs.version }}
+          docker push ghcr.io/cniweb/cpuminer-opt:${{ github.sha }}
+
+          # Capture the GHCR-specific digest for attestation/SBOM
+          DIGEST=$(docker inspect --format='{{range .RepoDigests}}{{println .}}{{end}}' ghcr.io/cniweb/cpuminer-opt:${{ steps.get_version.outputs.version }} | grep '^ghcr.io/cniweb/cpuminer-opt@' | head -n1 | cut -d'@' -f2)
+          if [ -z "$DIGEST" ]; then
+            echo "Could not determine ghcr.io digest for cniweb/cpuminer-opt" >&2
+            exit 1
+          fi
+          echo "digest=$DIGEST" >> $GITHUB_OUTPUT
+
+      - name: Generate SLSA provenance attestation
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
+        with:
+          subject-name: ghcr.io/cniweb/cpuminer-opt
+          subject-digest: ${{ steps.push.outputs.digest }}
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        with:
+          image: ghcr.io/cniweb/cpuminer-opt@${{ steps.push.outputs.digest }}
+          format: spdx-json
+          output-file: sbom.spdx.json
+
+      - name: Attest SBOM
+        uses: actions/attest-sbom@c604332985a26aa8cf1bdc465b92731239ec6b9e # v4.1.0
+        with:
+          subject-name: ghcr.io/cniweb/cpuminer-opt
+          subject-digest: ${{ steps.push.outputs.digest }}
+          sbom-path: sbom.spdx.json
