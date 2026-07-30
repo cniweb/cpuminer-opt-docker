@@ -58,8 +58,6 @@ RUN set -eu; \
         make \
         pkg-config \
     && apt-get clean \
-    && apt-get -y autoremove --purge \
-    && apt-get -y clean \
     && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* /tmp/* \
     && cpuminer --cputest \
     && cpuminer --version

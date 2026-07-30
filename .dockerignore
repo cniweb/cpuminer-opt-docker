@@ -1,22 +1,40 @@
-# Git files
+# Git
 .git
 .gitignore
 .github
 
 # Documentation
 README.md
+CHANGELOG.md
+AGENTS.md
 LICENSE
 
-# Development files
-.env
-.env.*
+# Build artifacts
+**/*.tar.gz
+**/*.zip
 
 # Temporary files
 *.tmp
+*.temp
+**/.DS_Store
+
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo
+
+# Logs
 *.log
+**/*.log
 
 # Whitesource config
 .whitesource
 
-# Exclude build.sh file
+# Build and test scripts
 build.sh
+security-check.sh
+
+# Environment examples
+.env
+.env.*
