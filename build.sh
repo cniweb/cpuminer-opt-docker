@@ -111,6 +111,13 @@ fi
 echo "Available registries: ${available_registries[*]}"
 
 build_image
+
+# Run security check if available
+if [ -f "security-check.sh" ]; then
+    echo "Running security check..."
+    ./security-check.sh
+fi
+
 push_images
 
 echo "🎉 All images built and pushed successfully!"

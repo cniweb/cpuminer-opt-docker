@@ -75,7 +75,7 @@ docker build -f /tmp/Dockerfile.fixed . --build-arg VERSION_TAG=v25.6 --tag cpum
   # Note: This script will attempt to push to registries - only run if you have push access
   ./build.sh
   ```
-- The script builds for docker.io, ghcr.io, and quay.io with version 25.6
+- The script builds for docker.io and ghcr.io with version 25.6
 - **Note**: build.sh requires registry credentials (DOCKER_USERNAME, DOCKER_PASSWORD, GITHUB_TOKEN, QUAY_USERNAME, QUAY_PASSWORD)
 - **Without credentials**: The script gracefully reports missing credentials and exits
 
@@ -202,7 +202,7 @@ timeout 30s docker run --rm cpuminer-opt:latest
 ### Key Files
 - **Dockerfile**: Builds cpuminer-opt v25.6 from github.com/JayDDee/cpuminer-opt with optimizations
 - **config.json**: Contains mining pool configuration for yespower algorithm
-- **build.sh**: Automates building and pushing to docker.io, ghcr.io, and quay.io
+- **build.sh**: Automates building and pushing to docker.io and ghcr.io
 - **.github/workflows/docker-image.yml**: CI pipeline that builds Docker image on push/PR
 - **.github/workflows/snyk-container-analysis.yml**: Security vulnerability scanning
 
