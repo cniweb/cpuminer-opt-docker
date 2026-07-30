@@ -26,11 +26,11 @@ Primary instruction source: `.github/copilot-instructions.md` (canonical when it
 
 ## Release/versioning
 
-- cpuminer-opt uses two-component versioning (e.g. `25.6` — no patch number).
+- cpuminer-opt uses two-component versioning (e.g. `26.1` — no patch number).
 - Version bumps must stay synchronized across all four files: `Dockerfile`, `build.sh`, `README.md`, and `CHANGELOG.md`.
 - The release workflow (`.github/workflows/release-from-version.yml`) handles all four automatically: it updates version refs, and promotes `CHANGELOG.md`'s `## [Unreleased]` heading to `## [<version>] - <date>`. **The workflow fails fast if `CHANGELOG.md` has no `## [Unreleased]` section** — add one with the release notes before triggering it.
 - Prefer that workflow for releases: it updates version refs, commits, tags `vX.Y`, and creates the GitHub release.
-- The `Dockerfile` uses `ARG VERSION_TAG=v$version` (with `v` prefix), while `build.sh` uses `version="25.6"` (without `v` prefix).
+- The `Dockerfile` uses `ARG VERSION_TAG=v$version` (with `v` prefix), while `build.sh` uses `version="26.1"` (without `v` prefix).
 
 ## Small gotchas
 

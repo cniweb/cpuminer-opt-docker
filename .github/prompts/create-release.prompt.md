@@ -7,7 +7,7 @@ Create a release for this repository.
 
 ## Workflow
 
-1. **Version input.** If no version is provided in the request, ask for it (format `25.6` or `v25.6`).
+1. **Version input.** If no version is provided in the request, ask for it (format `26.1` or `v26.1`).
 2. **Normalize** to `VERSION` (without `v`) and `TAG` (`v${VERSION}`).
 3. **Fetch upstream cpuminer-opt release notes** from `https://github.com/JayDDee/cpuminer-opt/releases/tag/v${VERSION}` using `gh release view v${VERSION} --repo JayDDee/cpuminer-opt --json body -q .body`. Extract the changelog items (bug fixes, features, improvements) — ignore SHA256 checksums and GPG signatures.
 4. **Update `CHANGELOG.md`**: add a new section at the top (below the header) with:
