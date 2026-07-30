@@ -20,14 +20,14 @@ jobs:
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
     - name: Build a Docker image
-      run: docker build -t cniweb/cpuminer-opt-docker .
+      run: docker build -t cniweb/cpuminer-opt .
     - name: Run Snyk to check Docker image for vulnerabilities
       continue-on-error: true
       uses: snyk/actions/docker@9adf32b1121593767fc3c057af55b55db032dc04 # v1.0.0
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       with:
-        image: cniweb/cpuminer-opt-docker
+        image: cniweb/cpuminer-opt
         args: --file=Dockerfile
     - name: Debug SARIF structure (before patching)
       run: |
