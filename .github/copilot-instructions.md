@@ -26,8 +26,8 @@ docker run --rm cniweb/cpuminer-opt:test cpuminer --cputest
 
 ### Versioning
 
-- Two-component versioning: 25.6 (no patch number)
-- Default VERSION_TAG=v25.6 (Dockerfile) / version="25.6" (build.sh)
+- Two-component versioning: 26.1 (no patch number)
+- Default VERSION_TAG=v26.1 (Dockerfile) / version="26.1" (build.sh)
 - Version bumps across: Dockerfile, build.sh, README.md, CHANGELOG.md
 
 ## Environment Variables

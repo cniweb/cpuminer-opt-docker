@@ -3,7 +3,7 @@ set -eu
 
 # Define image name, version and registries
 image="cpuminer-opt"
-version="25.6"
+version="26.1"
 declare -a available_registries=()
 
 # Support build-only mode (used by CI validate job)
