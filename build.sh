@@ -40,18 +40,6 @@ login_to_registries() {
     echo "⚠ GitHub token not provided. Skipping ghcr.io registry."
   fi
 
-  # Login to Quay.io
-  if [[ -n "$QUAY_USERNAME" && -n "$QUAY_PASSWORD" ]]; then
-    echo "Logging into Quay.io..."
-    if docker login quay.io -u "$QUAY_USERNAME" --password-stdin <<< "$QUAY_PASSWORD"; then
-      echo "✓ Quay.io login successful"
-      available_registries+=("quay.io")
-    else
-      echo "✗ Quay.io login failed, skipping quay.io registry"
-    fi
-  else
-    echo "⚠ Quay.io credentials not provided. Skipping quay.io registry."
-  fi
 }
 
 # Build the image
@@ -116,7 +104,7 @@ if [[ ${#available_registries[@]} -eq 0 ]]; then
   echo "Please configure at least one of the following:"
   echo "  - Docker Hub: DOCKER_USERNAME and DOCKER_PASSWORD"
   echo "  - GitHub Container Registry: GITHUB_TOKEN"
-  echo "  - Quay.io: QUAY_USERNAME and QUAY_PASSWORD"
+
   exit 1
 fi
 
