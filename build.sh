@@ -1,13 +1,18 @@
 #!/bin/bash
+set -eu
+
 # Define image name, version and registries
 image="cpuminer-opt"
 version="25.6"
 declare -a available_registries=()
 
+# Support build-only mode (used by CI validate job)
+BUILD_ONLY="${1:-}"
+
 # Function to login to registries and track which ones are available
 login_to_registries() {
   echo "Logging into Docker registries..."
-  
+
   # Login to Docker Hub
   if [[ -n "$DOCKER_USERNAME" && -n "$DOCKER_PASSWORD" ]]; then
     echo "Logging into Docker Hub..."
@@ -49,7 +54,60 @@ login_to_registries() {
   fi
 }
 
-# Login to configured registries
+# Build the image
+build_image() {
+  echo "Building Docker image..."
+  docker build . --build-arg VERSION_TAG=v$version --tag docker.io/cniweb/$image:$version
+
+  if [ $? -ne 0 ]; then
+    echo "❌ Docker build failed!"
+    exit 1
+  fi
+
+  echo "✓ Docker build succeeded!"
+}
+
+# Tag and push images to all configured registries
+push_images() {
+  echo "Tagging and pushing images to configured registries..."
+  for registry in "${available_registries[@]}"; do
+    echo "Processing registry: $registry"
+    docker tag docker.io/cniweb/$image:$version $registry/cniweb/$image:$version
+    docker tag docker.io/cniweb/$image:$version $registry/cniweb/$image:latest
+
+    # Push both versioned and latest tags
+    push_failed=false
+
+    echo "Pushing $registry/cniweb/$image:$version..."
+    docker push $registry/cniweb/$image:$version
+    if [ $? -ne 0 ]; then
+      echo "❌ Failed to push $registry/cniweb/$image:$version"
+      push_failed=true
+    fi
+
+    echo "Pushing $registry/cniweb/$image:latest..."
+    docker push $registry/cniweb/$image:latest
+    if [ $? -ne 0 ]; then
+      echo "❌ Failed to push $registry/cniweb/$image:latest"
+      push_failed=true
+    fi
+
+    if [ "$push_failed" = true ]; then
+      echo "⚠ Some pushes failed for $registry, but continuing with other registries"
+    else
+      echo "✓ Successfully pushed to $registry"
+    fi
+  done
+}
+
+# Build only mode — exit before registry login/push
+if [ "$BUILD_ONLY" = "build-only" ]; then
+  build_image
+  echo "🎉 Image built successfully (build-only mode, skipping push)."
+  exit 0
+fi
+
+# Full mode: login, build, and push
 login_to_registries
 
 # Check if we have at least one registry configured
@@ -64,47 +122,7 @@ fi
 
 echo "Available registries: ${available_registries[*]}"
 
-# Build the image using the first available registry
-echo "Building Docker image..."
-docker build . --build-arg VERSION_TAG=v$version --tag ${available_registries[0]}/cniweb/$image:$version
-
-# Check if the command was successful
-if [ $? -ne 0 ]; then
-  echo "❌ Docker build failed!"
-  exit 1
-fi
-
-echo "✓ Docker build succeeded!"
-
-# Tag and push the images
-echo "Tagging and pushing images to configured registries..."
-for registry in "${available_registries[@]}"; do
-  echo "Processing registry: $registry"
-  docker tag ${available_registries[0]}/cniweb/$image:$version $registry/cniweb/$image:$version
-  docker tag ${available_registries[0]}/cniweb/$image:$version $registry/cniweb/$image:latest
-  
-  # Push both versioned and latest tags
-  push_failed=false
-  
-  echo "Pushing $registry/cniweb/$image:$version..."
-  docker push $registry/cniweb/$image:$version
-  if [ $? -ne 0 ]; then
-    echo "❌ Failed to push $registry/cniweb/$image:$version"
-    push_failed=true
-  fi
-  
-  echo "Pushing $registry/cniweb/$image:latest..."
-  docker push $registry/cniweb/$image:latest
-  if [ $? -ne 0 ]; then
-    echo "❌ Failed to push $registry/cniweb/$image:latest"
-    push_failed=true
-  fi
-  
-  if [ "$push_failed" = true ]; then
-    echo "⚠ Some pushes failed for $registry, but continuing with other registries"
-  else
-    echo "✓ Successfully pushed to $registry"
-  fi
-done
+build_image
+push_images
 
 echo "🎉 All images built and pushed successfully!"
