@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "cpuminer-opt version (e.g. 25.6 or v25.6)"
+        description: "cpuminer-opt version (e.g. 26.1 or v26.1)"
         required: true
         type: string
 
@@ -30,10 +30,10 @@ jobs:
           VERSION="${INPUT#v}"
           TAG="v${VERSION}"
 
-          # cpuminer-opt uses two-component versioning (e.g. 25.6)
+          # cpuminer-opt uses two-component versioning (e.g. 26.1)
           if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+$ ]]; then
             echo "Invalid version: $INPUT"
-            echo "Use two-component version format like 25.6 or v25.6"
+            echo "Use two-component version format like 26.1 or v26.1"
             exit 1
           fi
 

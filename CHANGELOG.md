@@ -27,9 +27,17 @@ Each entry tracks the upstream [cpuminer-opt](https://github.com/JayDDee/cpumine
 - Added pull request template.
 - `build.sh` now supports `build-only` argument (build without registry login/push).
 
+## [26.1] - 2026-07-30
+
+### Changed
+- Updated cpuminer-opt from 25.6 to 26.1
+
 ## [25.6] - 2025-01-14
 
 ### Packaging
 - Initial release packaging cpuminer-opt v25.6.
 - Dockerfile builds from source via git clone with AVX2/VAES optimizations.
 - Multi-registry push support (Docker Hub, GHCR, Quay.io).
+
+[26.1]: https://github.com/JayDDee/cpuminer-opt/releases/tag/v26.1
+[25.6]: https://github.com/JayDDee/cpuminer-opt/releases/tag/v25.6

@@ -1,7 +1,7 @@
 FROM debian:trixie-slim
 
 # Set non-root user early
-ARG VERSION_TAG=v25.6
+ARG VERSION_TAG=v26.1
 ARG CPUMINER_USER=cpuminer
 ARG CPUMINER_UID=1000
 ARG CPUMINER_GID=1000
@@ -45,7 +45,7 @@ RUN set -eu; \
     && cd /tmp/cpuminer \
     && git checkout "$VERSION_TAG" \
     && ./autogen.sh \
-    && extracflags="$extracflags -Ofast -flto -fuse-linker-plugin -ftree-loop-if-convert-stores" \
+    && extracflags="-Ofast -flto -fuse-linker-plugin -ftree-loop-if-convert-stores" \
     && CFLAGS="-O3 -march=native -Wall" ./configure --with-curl \
     && make install -j 4 \
     && cd / \
@@ -58,8 +58,6 @@ RUN set -eu; \
         make \
         pkg-config \
     && apt-get clean \
-    && apt-get -y autoremove --purge \
-    && apt-get -y clean \
     && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* /tmp/* \
     && cpuminer --cputest \
     && cpuminer --version
