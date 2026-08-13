@@ -66,7 +66,7 @@ jobs:
         jq '
           def fix_security_severity:
             if type == "object" then
-              if has("security-severity") and ((".["security-severity"] == null) or (.["security-severity"] == "null")) then
+              if has("security-severity") and ((.["security-severity"] == null) or (.["security-severity"] == "null")) then
                 .["security-severity"] = "0.0"
               else . end |
               with_entries(.value |= fix_security_severity)
