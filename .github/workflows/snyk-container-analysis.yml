@@ -130,6 +130,6 @@ jobs:
         security_severity_count=$(jq '[.. | objects | select(has("security-severity"))] | length' snyk.sarif)
         echo "INFO: Found $security_severity_count total security-severity properties"
     - name: Upload result to GitHub Code Scanning
-      uses: github/codeql-action/upload-sarif@5595ccaf912efad79be6eef63a5619ff05969be3 # v4
+      uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4
       with:
         sarif_file: snyk.sarif
