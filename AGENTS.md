@@ -8,6 +8,7 @@ Primary instruction source: `.github/copilot-instructions.md` (canonical when it
 - `Dockerfile` is the single image variant (no multi-stage variants).
 - Default `docker run` uses `CMD ["cpuminer", "--config=config.json"]` directly — no entrypoint script.
 - The image runs as non-root `cpuminer` by default.
+- The Dockerfile uses `-march=native`; images built on one CPU may not run on another. Review this before publishing portable images.
 
 ## Verification
 
@@ -17,6 +18,7 @@ Primary instruction source: `.github/copilot-instructions.md` (canonical when it
   - `docker run --rm cniweb/cpuminer-opt:test cpuminer --cputest`
 - `./build.sh build-only` is the same build path CI uses on `main`; it exits before registry login or pushes.
 - `./security-check.sh` defaults to image `cniweb/cpuminer-opt:test`; build that tag first or pass a different image name.
+- CI and Dockerfile checks are the test surface; there is no conventional unit-test or lint suite. `./build.sh build-only` skips registry login, security checks, and pushes.
 
 ## Shell and runtime constraints
 
@@ -37,6 +39,9 @@ Primary instruction source: `.github/copilot-instructions.md` (canonical when it
 - Since cpuminer-opt is built from source via git clone, the Docker build takes 60-90 seconds.
 - `.dockerignore` excludes `.github`, `build.sh`, and `security-check.sh` from the build context.
 - No `docker-entrypoint.sh` exists — the container uses `CMD` directly.
+- The runtime config is `/home/cpuminer/config.json`; offline validation should use `--version` or `--cputest` rather than the default mining command.
+- `build.sh` uses `set -u` and currently references registry credential variables before safe defaults in full mode. Preserve or fix this deliberately; the README's skip-missing-registry behavior depends on it.
+- Keep the Dockerfile's `v`-prefixed `VERSION_TAG` distinct from the unprefixed version stored by `build.sh`. Review the unused/misspelled `extracflags` variable when changing compiler flags.
 
 ## CI
 
