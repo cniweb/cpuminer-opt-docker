@@ -22,6 +22,7 @@ jobs:
     - name: Build a Docker image
       run: docker build -t cniweb/cpuminer-opt .
     - name: Run Snyk to check Docker image for vulnerabilities
+      id: snyk
       continue-on-error: true
       uses: snyk/actions/docker@9adf32b1121593767fc3c057af55b55db032dc04 # v1.0.0
       env:
@@ -30,6 +31,7 @@ jobs:
         image: cniweb/cpuminer-opt
         args: --file=Dockerfile
     - name: Debug SARIF structure (before patching)
+      if: steps.snyk.outcome == 'success' && hashFiles('snyk.sarif') != ''
       run: |
         echo "=== SARIF file structure analysis ==="
         if [ -f snyk.sarif ]; then
@@ -56,6 +58,7 @@ jobs:
         jq -r 'paths(scalars) as $p | select(getpath($p) == "null" and ($p | last) == "security-severity") | "STRING NULL Path: " + ($p | join("."))' snyk.sarif || echo "No string 'null' security-severity found"
 
     - name: Patch SARIF file (replace null severity values)
+      if: steps.snyk.outcome == 'success' && hashFiles('snyk.sarif') != ''
       run: |
         echo "=== Patching SARIF file ==="
         echo "=== Applying text-based replacement ==="
@@ -80,6 +83,7 @@ jobs:
         ' snyk.sarif > snyk.sarif.tmp && mv snyk.sarif.tmp snyk.sarif
 
     - name: Debug SARIF structure (after patching)
+      if: steps.snyk.outcome == 'success' && hashFiles('snyk.sarif') != ''
       run: |
         echo "=== SARIF file after patching ==="
         echo "=== Searching for remaining security-severity patterns ==="
@@ -95,6 +99,7 @@ jobs:
         jq -r 'paths(scalars) as $p | select(getpath($p) == "null" and ($p | last) == "security-severity") | "REMAINING STRING NULL Path: " + ($p | join("."))' snyk.sarif || echo "No string 'null' security-severity found"
 
     - name: Validate SARIF file
+      if: steps.snyk.outcome == 'success' && hashFiles('snyk.sarif') != ''
       run: |
         echo "=== Final validation ==="
         jq '.' snyk.sarif > /dev/null && echo "SARIF file is valid JSON" || { echo "ERROR: SARIF file is not valid JSON"; exit 1; }
@@ -130,6 +135,7 @@ jobs:
         security_severity_count=$(jq '[.. | objects | select(has("security-severity"))] | length' snyk.sarif)
         echo "INFO: Found $security_severity_count total security-severity properties"
     - name: Upload result to GitHub Code Scanning
+      if: steps.snyk.outcome == 'success' && hashFiles('snyk.sarif') != ''
       uses: github/codeql-action/upload-sarif@5595ccaf912efad79be6eef63a5619ff05969be3 # v4
       with:
         sarif_file: snyk.sarif
