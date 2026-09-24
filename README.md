@@ -4,6 +4,11 @@ High performance, open source CPU/GPU Miner Docker Image for some mininer algori
 
 [![Snyk Container](https://github.com/cniweb/cpuminer-opt-docker/actions/workflows/snyk-container-analysis.yml/badge.svg)](https://github.com/cniweb/cpuminer-opt-docker/actions/workflows/snyk-container-analysis.yml) [![Docker Image CI](https://github.com/cniweb/cpuminer-opt-docker/actions/workflows/docker-image.yml/badge.svg)](https://github.com/cniweb/cpuminer-opt-docker/actions/workflows/docker-image.yml) ![Docker Pulls](https://img.shields.io/docker/pulls/cniweb/cpuminer-opt)
 
+## Version
+
+`Dockerfile` currently uses cpuminer-opt `26.1`.
+`build.sh` currently tags/pushes `26.1`.
+
 ## Usage from ghcr.io
 
 ```bash

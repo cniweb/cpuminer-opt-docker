@@ -28,7 +28,7 @@ Create a release for this repository.
 9. **Create a GitHub release** with title/body based on the latest previous release text, replacing old tag/version with the new one. Include a summary of upstream changes in the release body.
 10. **Report** exactly which files changed and final tag/release URL.
 
-Prefer using the workflow `Create Release From Version` (`.github/workflows/release-from-version.yml`) when possible. The workflow handles steps 5, 7, 8, and 9 automatically but does **not** update `CHANGELOG.md` — that must be done manually or by the agent before running the workflow.
+Prefer using the workflow `Create Release From Version` (`.github/workflows/release-from-version.yml`) when possible. The workflow handles steps 5, 7, 8, and 9 automatically; for `CHANGELOG.md` it only promotes a pre-written `## [Unreleased]` section to `## [<version>] - <date>` — the release notes themselves must be written manually or by the agent before running the workflow (it fails fast without an `## [Unreleased]` section).
 
 ## Checking for new upstream versions
 

@@ -7,7 +7,7 @@ cpuminer-opt-docker builds cpuminer-opt from source in a Debian environment and 
 Dockerfile              # Single-stage build from git source
 build.sh                # Build and push script
 security-check.sh       # Image security verification
-AGENTS.md               # Primary agent workspace guide (canonical)
+AGENTS.md               # Agent workspace guide
 
 ## Working Effectively
 

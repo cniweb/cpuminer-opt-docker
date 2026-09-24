@@ -24,6 +24,9 @@ LICENSE
 *.swp
 *.swo
 
+# Agent tooling (local-only, also gitignored)
+.serena
+
 # Logs
 *.log
 **/*.log
